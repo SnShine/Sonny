@@ -1,9 +1,16 @@
+#
+#   Surya Teja Cheedella
+#       BITS Pilani, Hyderabad Campus
+#
+
 from tkinter import *
 from tkinter import ttk
 import requests, json
+import random
 
-wish_words= []
-thank_words= []
+wish_words= ["happy", "hapie", "happie", "bday", "birthday", "returns"]
+thank_words= ["Thank you ", "Thanks :D ", "Thank you so much for your wishes ",
+                "Thank you for your warm wishes :) "]
 
 output_file= open("wishes.txt", "w")
 
@@ -57,8 +64,9 @@ def comment_post(id, token, name):
     id= id.split("_")[1]
     #print(id)
 
+    my_thank_word= thank_words[random.randint(0, len(thank_words))]
     url= "https://graph.facebook.com/%s/comments" % (id)
-    params= {"access_token": token, "message": "i bought a new pencil! hahahaaa"}
+    params= {"access_token": token, "message": my_thank_word+ name}
     posted= requests.post(url, data= params)
     if posted.status_code== 200:
         print("commented")
@@ -172,6 +180,5 @@ root.bind('<Return>', validate_values)
 
 for child in mainframe.winfo_children():
     child.grid_configure(padx=5, pady=5)
-
 
 root.mainloop()
