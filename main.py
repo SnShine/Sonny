@@ -7,9 +7,12 @@ from tkinter import *
 from tkinter import ttk
 import requests, json
 import random
+# import subprocess as sub
+# p = sub.Popen('main.py', stdout=sub.PIPE, stderr=sub.PIPE)
+# output, errors = p.communicate()
 
 wish_words= ["happy", "hapie", "happie", "bday", "birthday", "returns"]
-thank_words= ["Thank you ", "Thanks :D ", "Thank you so much for your wishes ",
+thank_words= ["Thank you :) ", "Thanks :D ", "Thank you so much for your wishes :) ",
                 "Thank you for your warm wishes :) "]
 
 output_file= open("wishes.txt", "w")
@@ -21,7 +24,11 @@ def get_posts(token):
         result = json.loads(r.text)
         return result['data']
     else:
-        print("Unable to get data. Check if session is still valid.")
+        temp= ("Unable to get data. Check if session is still valid.\n")
+        text_out.insert(INSERT, temp)
+        root.update_idletasks()
+
+        return "no data"
 
 def is_birthday(created_date, birthday):
     date= created_date[5:]
@@ -55,9 +62,9 @@ def like_post(id, token):
     params= {"access_token": token}
     posted= requests.post(url, data= params)
     if posted.status_code== 200:
-        print("liked")
+        return True
 
-    return
+    return False
 
 def comment_post(id, token, name):
     #print(id)
@@ -69,62 +76,102 @@ def comment_post(id, token, name):
     params= {"access_token": token, "message": my_thank_word+ name}
     posted= requests.post(url, data= params)
     if posted.status_code== 200:
-        print("commented")
+        return True
 
-    return
+    return False
 
 def save_post(name, message):
-    print(name+ ": "+ message)
-    output_file.write(name+ ": "+ message)
-    output_file.write("\n")
+    try:
+        temp= (name+ ": "+ message+ "\n")
+        text_out.insert(INSERT, temp)
+        root.update_idletasks()
+        output_file.write(name+ ": "+ message)
+        output_file.write("\n")
 
-    return
+        return True
+    except:
+        return False
 
 def process_data(access_token, birthday, like, comment, save):
-    print("Starting to request timeline feed from facebook...")
+    temp= ("Starting to request timeline feed from facebook...\n")
+    text_out.insert(INSERT, temp)
+    root.update_idletasks()
     posts_data= get_posts(access_token)
-    print("Successfully fetched "+ str(len(posts_data))+ " posts from your timeline.")
+    if posts_data== "no data":
+        return
+    temp= ("Successfully fetched "+ str(len(posts_data))+ " posts from your timeline.\n")
+    text_out.insert(INSERT, temp)
+    root.update_idletasks()
+    
     for post in posts_data:
         try:
             #print(json.dumps(post, indent= 2))
             if is_birthday(post["created_time"][:10], birthday):
-                print("is birthday")
+                #temp= ("is birthday\n")
+                #text_out.insert(INSERT, temp)
+                #root.update_idletasks()
                 if is_wish(post["message"]):
-                    print("is wish")
+                    #temp= ("is wish\n")
+                    #text_out.insert(INSERT, temp)
+                    #root.update_idletasks()
                     if like:
-                        like_post(post["id"], access_token)
+                        done_like= like_post(post["id"], access_token)
+                        if done_like:
+                            temp= ("Liked wish from "+ post["from"]["name"]+ "\n")
+                            text_out.insert(INSERT, temp)
+                            root.update_idletasks()
                     if comment:
-                        comment_post(post["id"], access_token, post["from"]["name"])
+                        done_comment= comment_post(post["id"], access_token, post["from"]["name"])
+                        if done_comment:
+                            temp= ("Commented on wish from "+ post["from"]["name"]+ "\n")
+                            text_out.insert(INSERT, temp)
+                            root.update_idletasks()
                     if save:
-                        save_post(post["from"]["name"], post["message"])
+                        done_save= save_post(post["from"]["name"], post["message"])
+                        if done_save:
+                            temp= ("Saved wish from "+ post["from"]["name"]+ "\n")
+                            text_out.insert(INSERT, temp)
+                            root.update_idletasks()
+
         except:
             pass
 
 
 def validate_values(*args):
+    text_out.delete(1.0, INSERT)
     try:
         access_token= str(access_token_value.get())
         #print(access_token)
         if access_token== "":
-            print("Please enter access token")
+            temp= ("Please enter access token.\n")
+            text_out.insert(INSERT, temp)
+            root.update_idletasks()
             return
     except:
-        print("Please check the value entered in access token field!")
+        temp= ("Please check the value entered in access token field!\n")
+        text_out.insert(INSERT, temp)
+        root.update_idletasks()
         return
 
     try:
         birthday= str(date_value.get())
         #print(birthday)
         if birthday== "":
-            print("Please enter your birthday")
+            temp= ("Please enter your birthday.\n")
+            text_out.insert(INSERT, temp)
+            root.update_idletasks()
             return
         month, date= birthday.split("-")
         if len(date)!= 2 or len(month)!= 2:
-            print("Please check the value entered in birthday date field!")
+            temp= ("Please check the value entered in birthday date field!\n")
+            text_out.insert(INSERT, temp)
+            root.update_idletasks()
             return
         #print(date, month)
     except:
-        print("Please check the value entered in birthday date field!")
+        temp= ("Please check the value entered in birthday date field!\n")
+        text_out.insert(INSERT, temp)
+        root.update_idletasks()
         return
 
     like= like_value.get()
@@ -141,8 +188,9 @@ def validate_values(*args):
 root = Tk()
 root.title("Sonny- Automatically responds to birthday wishes")
 
+
 mainframe = ttk.Frame(root, padding="10 10 10 7")
-mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
+mainframe.grid(column=0, row=0, sticky=(N, W, S))
 mainframe.columnconfigure(0, weight=1)
 mainframe.rowconfigure(0, weight=1)
 
@@ -150,7 +198,7 @@ access_token_value = StringVar()
 date_value = StringVar()
 
 ttk.Label(mainframe, text="Enter the access token: ").grid(column=1, row=1, sticky=W)
-access_token_entry = ttk.Entry(mainframe, width=30, textvariable=access_token_value)
+access_token_entry = ttk.Entry(mainframe, width=37, textvariable=access_token_value)
 access_token_entry.grid(column=2, row=1, sticky=(W))
 
 ttk.Label(mainframe, text="Enter your birthday (MM-DD): ").grid(column=1, row=2, sticky=W)
@@ -175,10 +223,23 @@ save_check.grid(column=2, row=5, sticky=(W))
 
 ttk.Button(mainframe, text="Start", command=validate_values).grid(column=2, row=6, sticky=E)
 
+for child in mainframe.winfo_children():
+    child.grid_configure(padx=9, pady=5)
+
+smallframe = ttk.Frame(root, padding="10 10 10 7")
+smallframe.grid(column=0, row=1, sticky=(N, W, E, S))
+smallframe.columnconfigure(0, weight=1)
+smallframe.rowconfigure(0, weight=1)
+
+text_out = Text(smallframe, height= 10, width= 70)
+text_out.grid(padx= 5, pady= 5)
+scrl = Scrollbar(smallframe, command=text_out.yview)
+text_out.config(yscrollcommand=scrl.set)
+scrl.grid(row=0, column=1, sticky='n s')
+
+# text_out.insert(INSERT, output)
+
 access_token_entry.focus()
 root.bind('<Return>', validate_values)
-
-for child in mainframe.winfo_children():
-    child.grid_configure(padx=5, pady=5)
 
 root.mainloop()
