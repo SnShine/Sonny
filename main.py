@@ -106,7 +106,7 @@ def save_post(name, message):
         return False
 
 global total_num_wishes
-total_num_wishes= 0
+
 
 def process_data(access_token, main_url, birthday, like, comment, save):
     output_to_widget("Starting to request timeline feed from facebook...\n")
@@ -144,7 +144,7 @@ def process_data(access_token, main_url, birthday, like, comment, save):
                             output_to_widget("--->Unable to Comment on wish from "+ post["from"]["name"]+ "\n")
                     if save:
                         done_save= save_post(post["from"]["name"], post["message"])
-                        time.sleep(0.005)
+                        time.sleep(0.05)
                         if done_save:
                             output_to_widget("--->Saved wish from "+ post["from"]["name"]+ "\n")
                         else:
@@ -169,6 +169,8 @@ def process_data(access_token, main_url, birthday, like, comment, save):
 
 def validate_values(*args):
     text_out.delete(1.0, INSERT)
+    global total_num_wishes
+    total_num_wishes= 0
     try:
         access_token= str(access_token_value.get())
         #print(access_token)
