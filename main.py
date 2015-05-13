@@ -3,10 +3,14 @@
 #       BITS Pilani, Hyderabad Campus
 #
 
+#from Tkinter import *
+#import ttk
+
 from tkinter import *
 from tkinter import ttk
+
 import requests, json
-import random
+import random, time
 # import subprocess as sub
 # p = sub.Popen('main.py', stdout=sub.PIPE, stderr=sub.PIPE)
 # output, errors = p.communicate()
@@ -15,22 +19,22 @@ wish_words= ["happy", "hapie", "happie", "bday", "birthday", "returns"]
 thank_words= ["Thank you :) ", "Thanks :D ", "Thank you so much for your wishes :) ",
                 "Thank you for your warm wishes :) "]
 
-output_file= open("wishes.txt", "w")
 
 def output_to_widget(message):
     text_out.insert(INSERT, message)
     root.update_idletasks()
+    text_out.see(END)
 
-def get_posts(token):
+def get_posts(token, main_url):
     parameters = {'access_token': token}
     try:
-        r = requests.get('https://graph.facebook.com/me/feed?limit=5', params=parameters)
+        r = requests.get(main_url, params=parameters, verify= False)
     except:
         output_to_widget("Unable to get date. Check your internet connection and try again!")
         return "no data"
     if r.status_code== 200:
         result = json.loads(r.text)
-        return result['data']
+        return result
     else:
         output_to_widget("Unable to get data. Check your access_token and make sure if session is still valid.\n")
         return "no data"
@@ -60,35 +64,40 @@ def is_wish(message):
     return False
 
 def like_post(id, token):
-    #print(id)
-    id= id.split("_")[1]
-    #print(id)
+    try:
+        #print(id)
+        id= id.split("_")[1]
+        #print(id)
+        
+        url= "https://graph.facebook.com/%s/likes" % (id)
+        params= {"access_token": token}
+        posted= requests.post(url, data= params, verify= False)
+        if posted.status_code== 200:
+            return True
 
-    url= "https://graph.facebook.com/%s/likes" % (id)
-    params= {"access_token": token}
-    posted= requests.post(url, data= params)
-    if posted.status_code== 200:
-        return True
-
-    return False
+        return False
+    except:
+        return False
 
 def comment_post(id, token, name):
-    #print(id)
-    id= id.split("_")[1]
-    #print(id)
+    try:
+        #print(id)
+        id= id.split("_")[1]
+        #print(id)
+        
+        my_thank_word= thank_words[random.randint(0, len(thank_words))]
+        url= "https://graph.facebook.com/%s/comments" % (id)
+        params= {"access_token": token, "message": my_thank_word+ name}
+        posted= requests.post(url, data= params, verify= False)
+        if posted.status_code== 200:
+            return True
 
-    my_thank_word= thank_words[random.randint(0, len(thank_words))]
-    url= "https://graph.facebook.com/%s/comments" % (id)
-    params= {"access_token": token, "message": my_thank_word+ name}
-    posted= requests.post(url, data= params)
-    if posted.status_code== 200:
-        return True
-
-    return False
+        return False
+    except:
+        return False
 
 def save_post(name, message):
     try:
-        output_to_widget(name+ ": "+ message+ "\n")
         output_file.write(name+ ": "+ message)
         output_file.write("\n")
 
@@ -96,35 +105,66 @@ def save_post(name, message):
     except:
         return False
 
-def process_data(access_token, birthday, like, comment, save):
+global total_num_wishes
+total_num_wishes= 0
+
+def process_data(access_token, main_url, birthday, like, comment, save):
     output_to_widget("Starting to request timeline feed from facebook...\n")
-    posts_data= get_posts(access_token)
-    if posts_data== "no data":
+    posts= get_posts(access_token, main_url)
+    if posts== "no data":
         return
-    output_to_widget("Successfully fetched "+ str(len(posts_data))+ " posts from your timeline.\n")
+    posts_data= posts["data"]
     
+    output_to_widget("Fetched "+ str(len(posts_data))+ " posts from your timeline.\n")
+    
+    num_wishes= 0
+
     for post in posts_data:
         try:
-            #print(json.dumps(post, indent= 2))
+            # output_to_widget(json.dumps(post, indent= 2))
             if is_birthday(post["created_time"][:10], birthday):
                 # output_to_widget("is birthday\n")
                 if is_wish(post["message"]):
                     # output_to_widget("is wish\n")
+                    num_wishes+= 1
+                    output_to_widget("\n"+ post["from"]["name"]+ ": "+ post["message"]+ "\n")
                     if like:
                         done_like= like_post(post["id"], access_token)
+                        time.sleep(0.1)
                         if done_like:
-                            output_to_widget("Liked wish from "+ post["from"]["name"]+ "\n")
+                            output_to_widget("--->Liked wish from "+ post["from"]["name"]+ "\n")
+                        else:
+                            output_to_widget("--->Unable to Like wish from "+ post["from"]["name"]+ "\n")
                     if comment:
                         done_comment= comment_post(post["id"], access_token, post["from"]["name"])
+                        time.sleep(0.2)
                         if done_comment:
-                            output_to_widget("Commented on wish from "+ post["from"]["name"]+ "\n")
+                            output_to_widget("--->Commented on wish from "+ post["from"]["name"]+ "\n")
+                        else:
+                            output_to_widget("--->Unable to Comment on wish from "+ post["from"]["name"]+ "\n")
                     if save:
                         done_save= save_post(post["from"]["name"], post["message"])
+                        time.sleep(0.005)
                         if done_save:
-                            output_to_widget("Saved wish from "+ post["from"]["name"]+ "\n")
+                            output_to_widget("--->Saved wish from "+ post["from"]["name"]+ "\n")
+                        else:
+                            output_to_widget("--->Unable to Save wish from "+ post["from"]["name"]+ "\n")
+
 
         except:
             pass
+        
+
+    output_to_widget("\nCompleted the sub-task on "+str(num_wishes)+" wishes fetched!\n")
+    global total_num_wishes
+    total_num_wishes+= num_wishes
+    if num_wishes> 0:
+        output_to_widget("\n    Trying to find some more wishes...\n")
+        process_data(access_token, posts["paging"]["next"], birthday, like, comment, save)
+    else:
+        if save:
+            output_file.close()
+        output_to_widget("\nSuccessfully completed the whole task on "+ str(total_num_wishes)+ " wishes fetched!")
 
 
 def validate_values(*args):
@@ -162,8 +202,12 @@ def validate_values(*args):
 
     save= save_value.get()
     #print(save)
+    if save:
+        global output_file
+        output_file= open("wishes.txt", "w")
 
-    process_data(access_token, birthday, like, comment, save)
+    main_url= 'https://graph.facebook.com/me/feed?limit=50'
+    process_data(access_token, main_url, birthday, like, comment, save)
 
 root = Tk()
 root.title("Sonny- Automatically responds to birthday wishes")
