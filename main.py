@@ -17,18 +17,24 @@ thank_words= ["Thank you :) ", "Thanks :D ", "Thank you so much for your wishes 
 
 output_file= open("wishes.txt", "w")
 
+def output_to_widget(message):
+    text_out.insert(INSERT, message)
+    root.update_idletasks()
+
 def get_posts(token):
     parameters = {'access_token': token}
-    r = requests.get('https://graph.facebook.com/me/feed?limit=5', params=parameters)
+    try:
+        r = requests.get('https://graph.facebook.com/me/feed?limit=5', params=parameters)
+    except:
+        output_to_widget("Unable to get date. Check your internet connection and try again!")
+        return "no data"
     if r.status_code== 200:
         result = json.loads(r.text)
         return result['data']
     else:
-        temp= ("Unable to get data. Check if session is still valid.\n")
-        text_out.insert(INSERT, temp)
-        root.update_idletasks()
-
+        output_to_widget("Unable to get data. Check your access_token and make sure if session is still valid.\n")
         return "no data"
+
 
 def is_birthday(created_date, birthday):
     date= created_date[5:]
@@ -82,9 +88,7 @@ def comment_post(id, token, name):
 
 def save_post(name, message):
     try:
-        temp= (name+ ": "+ message+ "\n")
-        text_out.insert(INSERT, temp)
-        root.update_idletasks()
+        output_to_widget(name+ ": "+ message+ "\n")
         output_file.write(name+ ": "+ message)
         output_file.write("\n")
 
@@ -93,45 +97,31 @@ def save_post(name, message):
         return False
 
 def process_data(access_token, birthday, like, comment, save):
-    temp= ("Starting to request timeline feed from facebook...\n")
-    text_out.insert(INSERT, temp)
-    root.update_idletasks()
+    output_to_widget("Starting to request timeline feed from facebook...\n")
     posts_data= get_posts(access_token)
     if posts_data== "no data":
         return
-    temp= ("Successfully fetched "+ str(len(posts_data))+ " posts from your timeline.\n")
-    text_out.insert(INSERT, temp)
-    root.update_idletasks()
+    output_to_widget("Successfully fetched "+ str(len(posts_data))+ " posts from your timeline.\n")
     
     for post in posts_data:
         try:
             #print(json.dumps(post, indent= 2))
             if is_birthday(post["created_time"][:10], birthday):
-                #temp= ("is birthday\n")
-                #text_out.insert(INSERT, temp)
-                #root.update_idletasks()
+                # output_to_widget("is birthday\n")
                 if is_wish(post["message"]):
-                    #temp= ("is wish\n")
-                    #text_out.insert(INSERT, temp)
-                    #root.update_idletasks()
+                    # output_to_widget("is wish\n")
                     if like:
                         done_like= like_post(post["id"], access_token)
                         if done_like:
-                            temp= ("Liked wish from "+ post["from"]["name"]+ "\n")
-                            text_out.insert(INSERT, temp)
-                            root.update_idletasks()
+                            output_to_widget("Liked wish from "+ post["from"]["name"]+ "\n")
                     if comment:
                         done_comment= comment_post(post["id"], access_token, post["from"]["name"])
                         if done_comment:
-                            temp= ("Commented on wish from "+ post["from"]["name"]+ "\n")
-                            text_out.insert(INSERT, temp)
-                            root.update_idletasks()
+                            output_to_widget("Commented on wish from "+ post["from"]["name"]+ "\n")
                     if save:
                         done_save= save_post(post["from"]["name"], post["message"])
                         if done_save:
-                            temp= ("Saved wish from "+ post["from"]["name"]+ "\n")
-                            text_out.insert(INSERT, temp)
-                            root.update_idletasks()
+                            output_to_widget("Saved wish from "+ post["from"]["name"]+ "\n")
 
         except:
             pass
@@ -143,35 +133,25 @@ def validate_values(*args):
         access_token= str(access_token_value.get())
         #print(access_token)
         if access_token== "":
-            temp= ("Please enter access token.\n")
-            text_out.insert(INSERT, temp)
-            root.update_idletasks()
+            output_to_widget("Please enter access token.\n")
             return
     except:
-        temp= ("Please check the value entered in access token field!\n")
-        text_out.insert(INSERT, temp)
-        root.update_idletasks()
+        output_to_widget("Please check the value entered in access token field!\n")
         return
 
     try:
         birthday= str(date_value.get())
         #print(birthday)
         if birthday== "":
-            temp= ("Please enter your birthday.\n")
-            text_out.insert(INSERT, temp)
-            root.update_idletasks()
+            output_to_widget("Please enter your birthday.\n")
             return
         month, date= birthday.split("-")
         if len(date)!= 2 or len(month)!= 2:
-            temp= ("Please check the value entered in birthday date field!\n")
-            text_out.insert(INSERT, temp)
-            root.update_idletasks()
+            output_to_widget("Please check the value entered in birthday date field!\n")
             return
         #print(date, month)
     except:
-        temp= ("Please check the value entered in birthday date field!\n")
-        text_out.insert(INSERT, temp)
-        root.update_idletasks()
+        output_to_widget("Please check the value entered in birthday date field!\n")
         return
 
     like= like_value.get()
