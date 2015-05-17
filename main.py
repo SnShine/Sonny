@@ -41,16 +41,22 @@ def get_posts(token, main_url):
 
 
 def is_birthday(created_date, birthday):
-    date= created_date[5:]
-    birthday_p_1= birthday[:3]+ str(int(birthday[3:])+ 1)
-    if len(birthday_p_1)!= 5:
-        birthday_p_1= birthday_p_1[:3]+ "0"+ birthday_p_1[3:]
-    birthday_m_1= birthday[:3]+ str(int(birthday[3:])- 1)
-    if len(birthday_m_1)!= 5:
-        birthday_m_1= birthday_m_1[:3]+ "0"+ birthday_m_1[3:]
-    #print(date, birthday, birthday_p_1, birthday_m_1)
+    '''
+    need to change the logic to find the dates of tomorrow and yesterday!
+    '''
+    birthday= birthday[6:]+ "-"+ birthday[:5]
+    #print(created_date, birthday)
+    #print(birthday[:8], birthday[8:])
+    birthday_p_1= birthday[:8]+ str(int(birthday[8:])+ 1)
+    if len(birthday_p_1)!= 10:
+        birthday_p_1= birthday_p_1[:8]+ "0"+ birthday_p_1[8:]
+    birthday_m_1= birthday[:8]+ str(int(birthday[8:])- 1)
+    if len(birthday_m_1)!= 10:
+        birthday_m_1= birthday_m_1[:8]+ "0"+ birthday_m_1[8:]
 
-    if date== birthday or date== birthday_m_1 or date== birthday_p_1:
+    print(created_date, birthday_p_1, birthday, birthday_m_1)
+
+    if created_date== birthday or created_date== birthday_m_1 or created_date== birthday_p_1:
         return True
 
     return False
@@ -187,8 +193,8 @@ def validate_values(*args):
         if birthday== "":
             output_to_widget("Please enter your birthday.\n")
             return
-        month, date= birthday.split("-")
-        if len(date)!= 2 or len(month)!= 2:
+        month, date, year= birthday.split("-")
+        if len(date)!= 2 or len(month)!= 2 or len(year)!= 4:
             output_to_widget("Please check the value entered in birthday date field!\n")
             return
         #print(date, month)
@@ -227,7 +233,7 @@ ttk.Label(mainframe, text="Enter the access token: ").grid(column=1, row=1, stic
 access_token_entry = ttk.Entry(mainframe, width=37, textvariable=access_token_value)
 access_token_entry.grid(column=2, row=1, sticky=(W))
 
-ttk.Label(mainframe, text="Enter your birthday (MM-DD): ").grid(column=1, row=2, sticky=W)
+ttk.Label(mainframe, text="Enter your birthday (MM-DD-YYYY): ").grid(column=1, row=2, sticky=W)
 date_entry = ttk.Entry(mainframe, width=15, textvariable=date_value)
 date_entry.grid(column=2, row=2, sticky=(W))
 
