@@ -15,7 +15,7 @@ import random, time
 # p = sub.Popen('main.py', stdout=sub.PIPE, stderr=sub.PIPE)
 # output, errors = p.communicate()
 
-wish_words= ["happy", "hapie", "happie", "bday", "birthday", "returns"]
+wish_words= ["happy", "hapie", "happie", "bday", "birthday", "returns", "b'day"]
 thank_words= ["Thank you :) ", "Thanks :D ", "Thank you so much for your wishes :) ",
                 "Thank you for your warm wishes :) "]
 
@@ -54,7 +54,7 @@ def is_birthday(created_date, birthday):
     if len(birthday_m_1)!= 10:
         birthday_m_1= birthday_m_1[:8]+ "0"+ birthday_m_1[8:]
 
-    print(created_date, birthday_p_1, birthday, birthday_m_1)
+    #print(created_date, birthday_p_1, birthday, birthday_m_1)
 
     if created_date== birthday or created_date== birthday_m_1 or created_date== birthday_p_1:
         return True
@@ -63,6 +63,7 @@ def is_birthday(created_date, birthday):
 
 def is_wish(message):
     message= message.lower()
+    #output_to_widget("\n"+ message+ "...\n")
     for word in wish_words:
         if word in message:
             return True
@@ -111,6 +112,24 @@ def save_post(name, message):
     except:
         return False
 
+def save_post_2(name, message):
+    try:
+        output_file_2.write(name+ ": "+ message)
+        output_file_2.write("\n")
+
+        return True
+    except:
+        return False
+
+def save_post_3(name, message):
+    try:
+        output_file_3.write(name+ ": "+ message)
+        output_file_3.write("\n")
+
+        return True
+    except:
+        return False
+
 global total_num_wishes
 
 
@@ -130,35 +149,55 @@ def process_data(access_token, main_url, birthday, like, comment, save):
             # output_to_widget(json.dumps(post, indent= 2))
             if is_birthday(post["created_time"][:10], birthday):
                 # output_to_widget("is birthday\n")
+                save_post_2(post["from"]["name"], post["message"])
+                #save_post(post["from"]["name"], post["message"])
+                time.sleep(0.1)
                 if is_wish(post["message"]):
+                    comment_flag= False
+                    try:
+                        comment_data= post["comments"]["data"]
+                        
+                        for ii in range(len(comment_data)):
+                            #print(comment_data[ii]["from"]["name"])
+                            if comment_data[ii]["from"]["name"]== "Surya Teja Cheedella":
+                                comment_flag= True
+                        if not comment_flag:
+                            save_post_3(post["from"]["name"], post["message"])
+                            time.sleep(0.1)
+                    except:
+                        save_post_3(post["from"]["name"], post["message"])
+                        time.sleep(0.1)
+
                     # output_to_widget("is wish\n")
                     num_wishes+= 1
-                    output_to_widget("\n"+ post["from"]["name"]+ ": "+ post["message"]+ "\n")
+                    #output_to_widget("\n"+ post["from"]["name"]+ ": "+ post["message"]+ "\n")
                     if like:
                         done_like= like_post(post["id"], access_token)
-                        time.sleep(0.1)
+                        time.sleep(0.5)
                         if done_like:
                             output_to_widget("--->Liked wish from "+ post["from"]["name"]+ "\n")
                         else:
                             output_to_widget("--->Unable to Like wish from "+ post["from"]["name"]+ "\n")
-                    if comment:
+                    if comment and not comment_flag:
                         done_comment= comment_post(post["id"], access_token, post["from"]["name"])
-                        time.sleep(0.2)
+                        time.sleep(0.5)
                         if done_comment:
                             output_to_widget("--->Commented on wish from "+ post["from"]["name"]+ "\n")
                         else:
                             output_to_widget("--->Unable to Comment on wish from "+ post["from"]["name"]+ "\n")
                     if save:
                         done_save= save_post(post["from"]["name"], post["message"])
-                        time.sleep(0.05)
+                        time.sleep(0.1)
                         if done_save:
                             output_to_widget("--->Saved wish from "+ post["from"]["name"]+ "\n")
                         else:
                             output_to_widget("--->Unable to Save wish from "+ post["from"]["name"]+ "\n")
-
+                    if not comment_flag:
+                        print(post["from"]["name"], post["message"])
 
         except:
             pass
+        
         
 
     output_to_widget("\nCompleted the sub-task on "+str(num_wishes)+" wishes fetched!\n")
@@ -170,6 +209,8 @@ def process_data(access_token, main_url, birthday, like, comment, save):
     else:
         if save:
             output_file.close()
+            output_file_2.close()
+            output_file_3.close()
         output_to_widget("\nSuccessfully completed the whole task on "+ str(total_num_wishes)+ " wishes fetched!")
 
 
@@ -212,7 +253,11 @@ def validate_values(*args):
     #print(save)
     if save:
         global output_file
+        global output_file_2
+        global output_file_3
         output_file= open("wishes.txt", "w")
+        output_file_2= open("wishes_2.txt", "w")
+        output_file_3= open("wishes_3.txt", "w")
 
     main_url= 'https://graph.facebook.com/me/feed?limit=50'
     process_data(access_token, main_url, birthday, like, comment, save)
