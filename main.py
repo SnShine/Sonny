@@ -1,12 +1,13 @@
-#
-#   Surya Teja Cheedella
-#       BITS Pilani, Hyderabad Campus
-#
+'''
 
-#from Tkinter import *
-#import ttk
+   Surya Teja Cheedella
+       BITS Pilani, Hyderabad Campus
 
-from tkinter import *
+'''
+# from Tkinter import *             #while building .exe with                 py setup.py build
+# import ttk
+
+from tkinter import *             #while running in command line with       py3 main.py
 from tkinter import ttk
 
 import requests, json
@@ -173,7 +174,7 @@ def process_data(access_token, main_url, birthday, like, comment, save):
                     #output_to_widget("\n"+ post["from"]["name"]+ ": "+ post["message"]+ "\n")
                     if like:
                         done_like= like_post(post["id"], access_token)
-                        time.sleep(0.5)
+                        time.sleep(0.2)
                         if done_like:
                             output_to_widget("--->Liked wish from "+ post["from"]["name"]+ "\n")
                         else:
@@ -255,9 +256,9 @@ def validate_values(*args):
         global output_file
         global output_file_2
         global output_file_3
-        output_file= open("wishes.txt", "w")
-        output_file_2= open("wishes_2.txt", "w")
-        output_file_3= open("wishes_3.txt", "w")
+        output_file= open("birthday_wishes.txt", "w")
+        output_file_2= open("birthday_posts.txt", "w")
+        output_file_3= open("unable_to_comment_wishes.txt", "w")
 
     main_url= 'https://graph.facebook.com/me/feed?limit=50'
     process_data(access_token, main_url, birthday, like, comment, save)
