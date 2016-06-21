@@ -1,1 +1,4 @@
 *.txt
+
+!birthday_posts.txt
+!birthday_wishes.txt

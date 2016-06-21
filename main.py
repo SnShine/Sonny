@@ -1,8 +1,6 @@
 '''
-
-   Surya Teja Cheedella
-       BITS Pilani, Hyderabad Campus
-
+    Surya Teja Cheedella
+    BITS Pilani, Hyderabad Campus
 '''
 # from Tkinter import *             #while building .exe with                 py setup.py build
 # import ttk
@@ -76,7 +74,7 @@ def like_post(id, token):
         #print(id)
         id= id.split("_")[1]
         #print(id)
-        
+
         url= "https://graph.facebook.com/%s/likes" % (id)
         params= {"access_token": token}
         posted= requests.post(url, data= params, verify= False)
@@ -92,7 +90,7 @@ def comment_post(id, token, name):
         #print(id)
         id= id.split("_")[1]
         #print(id)
-        
+
         my_thank_word= thank_words[random.randint(0, len(thank_words))]
         url= "https://graph.facebook.com/%s/comments" % (id)
         params= {"access_token": token, "message": my_thank_word+ name}
@@ -140,9 +138,9 @@ def process_data(access_token, main_url, birthday, like, comment, save):
     if posts== "no data":
         return
     posts_data= posts["data"]
-    
+
     output_to_widget("Fetched "+ str(len(posts_data))+ " posts from your timeline.\n")
-    
+
     num_wishes= 0
 
     for post in posts_data:
@@ -157,7 +155,7 @@ def process_data(access_token, main_url, birthday, like, comment, save):
                     comment_flag= False
                     try:
                         comment_data= post["comments"]["data"]
-                        
+
                         for ii in range(len(comment_data)):
                             #print(comment_data[ii]["from"]["name"])
                             if comment_data[ii]["from"]["name"]== "Surya Teja Cheedella":
@@ -198,8 +196,8 @@ def process_data(access_token, main_url, birthday, like, comment, save):
 
         except:
             pass
-        
-        
+
+
 
     output_to_widget("\nCompleted the sub-task on "+str(num_wishes)+" wishes fetched!\n")
     global total_num_wishes
