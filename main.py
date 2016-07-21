@@ -258,7 +258,7 @@ def validate_values(*args):
         output_file_2= open("birthday_posts.txt", "w")
         output_file_3= open("unable_to_comment_wishes.txt", "w")
 
-    main_url= 'https://graph.facebook.com/me/feed?limit=50'
+    main_url= 'https://graph.facebook.com/v2.1/me/feed?limit=50'
     process_data(access_token, main_url, birthday, like, comment, save)
 
 root = Tk()
