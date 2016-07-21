@@ -43,8 +43,9 @@ def is_birthday(created_date, birthday):
     '''
     need to change the logic to find the dates of tomorrow and yesterday!
     '''
-    birthday= birthday[6:]+ "-"+ birthday[:5]
-    #print(created_date, birthday)
+    # print(birthday)
+    # birthday= birthday[6:]+ "-"+ birthday[:5]
+    # print(created_date, birthday)
     #print(birthday[:8], birthday[8:])
     birthday_p_1= birthday[:8]+ str(int(birthday[8:])+ 1)
     if len(birthday_p_1)!= 10:
@@ -233,7 +234,7 @@ def validate_values(*args):
         if birthday== "":
             output_to_widget("Please enter your birthday.\n")
             return
-        month, date, year= birthday.split("-")
+        year, month, date= birthday.split("-")
         if len(date)!= 2 or len(month)!= 2 or len(year)!= 4:
             output_to_widget("Please check the value entered in birthday date field!\n")
             return
@@ -277,7 +278,7 @@ ttk.Label(mainframe, text="Enter the access token: ").grid(column=1, row=1, stic
 access_token_entry = ttk.Entry(mainframe, width=37, textvariable=access_token_value)
 access_token_entry.grid(column=2, row=1, sticky=(W))
 
-ttk.Label(mainframe, text="Enter your birthday (MM-DD-YYYY): ").grid(column=1, row=2, sticky=W)
+ttk.Label(mainframe, text="Enter your birthday (YYYY-MM-DD): ").grid(column=1, row=2, sticky=W)
 date_entry = ttk.Entry(mainframe, width=15, textvariable=date_value)
 date_entry.grid(column=2, row=2, sticky=(W))
 
